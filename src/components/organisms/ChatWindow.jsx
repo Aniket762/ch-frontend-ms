@@ -4,7 +4,6 @@ import {
   Typography,
   TextField,
   IconButton,
-  Divider,
   List,
   ListItem,
   ListItemText,
@@ -16,15 +15,15 @@ import AddIcon from "@mui/icons-material/Add";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
+import { sendChat } from "../../api/chatApi";
 
 const STORAGE_KEY = "combine-health-chats";
-
 
 const getUserAvatar = (seed) =>
   `https://api.dicebear.com/7.x/personas/svg?seed=${seed}`;
 
 const getAiAvatar = () =>
-  `https://api.dicebear.com/9.x/bottts/svg?seed=Leo`;
+  `https://api.dicebear.com/9.x/bottts/svg?seed=combine-health`;
 
 export default function ChatWindow() {
   const navigate = useNavigate();
@@ -32,6 +31,7 @@ export default function ChatWindow() {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   /* ---------- Load from sessionStorage ---------- */
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function ChatWindow() {
   /* ---------- Actions ---------- */
   const createNewChat = () => {
     const newChat = {
-      id: Date.now(),
+      id: crypto.randomUUID(), // 🔥 perfect for sessionId
       title: "New Discussion",
       messages: [],
     };
@@ -63,14 +63,17 @@ export default function ChatWindow() {
     setActiveChatId(newChat.id);
   };
 
-  const sendMessage = () => {
-    if (!input.trim() || !activeChat) return;
+  const sendMessage = async () => {
+    if (!input.trim() || !activeChat || loading) return;
+
+    const question = input;
 
     const userMessage = {
       role: "user",
-      content: input,
+      content: question,
     };
 
+    // Optimistic update
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === activeChatId
@@ -78,7 +81,7 @@ export default function ChatWindow() {
               ...chat,
               title:
                 chat.messages.length === 0
-                  ? input.slice(0, 30)
+                  ? question.slice(0, 30)
                   : chat.title,
               messages: [...chat.messages, userMessage],
             }
@@ -87,12 +90,17 @@ export default function ChatWindow() {
     );
 
     setInput("");
+    setLoading(true);
 
-    setTimeout(() => {
-      const assistantReply = {
+    try {
+      const botResponse = await sendChat(
+        question,
+        activeChatId // sessionId
+      );
+
+      const assistantMessage = {
         role: "assistant",
-        content:
-          "Thanks for your question! API integration coming soon 🚀",
+        content: botResponse,
       };
 
       setChats((prev) =>
@@ -100,12 +108,34 @@ export default function ChatWindow() {
           chat.id === activeChatId
             ? {
                 ...chat,
-                messages: [...chat.messages, assistantReply],
+                messages: [...chat.messages, assistantMessage],
               }
             : chat
         )
       );
-    }, 600);
+    } catch (err) {
+      
+        console.error("Chat API error:", err);
+      
+        const errorMessage = {
+          role: "assistant",
+          content:
+            "⏳ We are sending your query, it's taking an unexpected amount of time to deliver.",
+        };
+      
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === activeChatId
+              ? {
+                  ...chat,
+                  messages: [...chat.messages, errorMessage],
+                }
+              : chat
+          )
+        );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -147,7 +177,6 @@ export default function ChatWindow() {
           </Box>
         </Box>
 
-
         <List sx={{ px: 1, overflowY: "auto" }}>
           {chats.map((chat) => (
             <ListItem
@@ -181,6 +210,7 @@ export default function ChatWindow() {
 
       {/* ---------- Main Chat ---------- */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Header */}
         <Box
           sx={{
             px: 3,
@@ -203,7 +233,7 @@ export default function ChatWindow() {
           </Tooltip>
         </Box>
 
-        {/* ---------- Empty State ---------- */}
+        {/* Empty State */}
         {!activeChat && (
           <Box
             sx={{
@@ -213,7 +243,6 @@ export default function ChatWindow() {
               alignItems: "center",
               justifyContent: "center",
               textAlign: "center",
-              gap: 1,
             }}
           >
             <Typography variant="h4" fontWeight={700}>
@@ -225,7 +254,7 @@ export default function ChatWindow() {
           </Box>
         )}
 
-        {/* ---------- Messages ---------- */}
+        {/* Messages */}
         {activeChat && (
           <Box
             sx={{
@@ -284,7 +313,7 @@ export default function ChatWindow() {
           </Box>
         )}
 
-        {/* ---------- Input (only when chat exists) ---------- */}
+        {/* Input */}
         {activeChat && (
           <Box
             sx={{
@@ -311,12 +340,16 @@ export default function ChatWindow() {
                 variant="standard"
                 InputProps={{ disableUnderline: true }}
                 value={input}
+                disabled={loading}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) =>
                   e.key === "Enter" && sendMessage()
                 }
               />
-              <IconButton onClick={sendMessage}>
+              <IconButton
+                onClick={sendMessage}
+                disabled={loading}
+              >
                 <SendIcon />
               </IconButton>
             </Box>
