@@ -1,38 +1,25 @@
-import { Box, Paper } from "@mui/material";
-import ChatHeader from "./ChatHeader";
-import MessageList from "./MessageList";
-import ChatInput from "../molecules/ChatInput";
+import { Box } from "@mui/material";
+import ChatMessages from "../molecules/ChatMessages";
+import PromptInput from "../molecules/PromptInput";
+import { useChatSessions } from "../../hooks/useChatSessions";
 
-export default function ChatWindow({
-  messages,
-  input,
-  loading,
-  onInputChange,
-  onSend,
-  onNewChat,
-}) {
+export default function ChatWindow() {
+  const { activeSession } = useChatSessions();
+
   return (
-    <Paper
+    <Box
       sx={{
-        p: 3,
-        height: "100%",
-        width: "100%",
-        maxWidth: 820,
+        flex: 1,
         display: "flex",
         flexDirection: "column",
-        borderRadius: 0,
-        boxShadow: "none",
-        bgcolor: "transparent",
+        overflow: "hidden"
       }}
     >
-      <ChatHeader onNewChat={onNewChat} />
-      <MessageList messages={messages} loading={loading} />
-      <ChatInput
-        value={input}
-        onChange={onInputChange}
-        onSend={onSend}
-        disabled={loading}
-      />
-    </Paper>
+      <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>
+        <ChatMessages messages={activeSession.messages} />
+      </Box>
+
+      <PromptInput />
+    </Box>
   );
 }

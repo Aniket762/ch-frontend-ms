@@ -1,64 +1,35 @@
-import {
-    Box,
-    Typography,
-    Button,
-    List,
-    ListItemButton,
-  } from "@mui/material";
-  import AddIcon from "@mui/icons-material/Add";
-  
-  export default function Sidebar({
-    sessions,
-    activeSessionId,
-    onNewChat,
-    onSelectSession,
-  }) {
-    return (
-      <Box
-        sx={{
-          width: 260,
-          bgcolor: "#202123",
-          color: "#ECECF1",
-          p: 2,
-          display: { xs: "none", md: "flex" },
-          flexDirection: "column",
-        }}
-      >
-        <Button
-          startIcon={<AddIcon />}
-          onClick={onNewChat}
-          sx={{
-            color: "#ECECF1",
-            border: "1px solid #4D4D4F",
-            mb: 2,
-            textTransform: "none",
-          }}
-        >
-          New chat
-        </Button>
-  
-        <List dense sx={{ overflowY: "auto" }}>
-          {sessions.map(session => (
-            <ListItemButton
-              key={session.sessionId}
-              selected={session.sessionId === activeSessionId}
-              onClick={() => onSelectSession(session.sessionId)}
-              sx={{
-                borderRadius: 1,
-                mb: 0.5,
-                color: "#ECECF1",
-                "&.Mui-selected": {
-                  bgcolor: "#343541",
-                },
-              }}
-            >
-              <Typography variant="body2" noWrap>
-                {session.title}
-              </Typography>
-            </ListItemButton>
-          ))}
-        </List>
-      </Box>
-    );
-  }
-  
+import { Box, Button, List, ListItemButton, ListItemText } from "@mui/material";
+import { useChatSessions } from "../../hooks/useChatSessions";
+
+export default function ChatSidebar() {
+  const { sessions, newSession, setActive } = useChatSessions();
+
+  return (
+    <Box
+      sx={{
+        width: 260,
+        bgcolor: "#0f172a",
+        color: "#fff",
+        p: 2,
+        display: "flex",
+        flexDirection: "column"
+      }}
+    >
+      <Button variant="contained" onClick={newSession} sx={{ mb: 2 }}>
+        + New Chat
+      </Button>
+
+      <List sx={{ p: 0, flex: 1 }}>
+        {sessions.map(s => (
+          <ListItemButton
+            key={s.id}
+            onClick={() => setActive(s.id)}
+            sx={{ borderRadius: 1 }}
+          >
+            <ListItemText primary={s.title} />
+          </ListItemButton>
+        ))}
+      </List>
+    </Box>
+  );
+}

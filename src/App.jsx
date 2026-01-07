@@ -1,23 +1,12 @@
-import { ThemeProvider, CssBaseline } from "@mui/material";
-import theme from "./theme/theme";
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
-import AppLayout from "./components/layout/AppLayout";
-import useChat from "./hooks/useChat";
+import ChatPage from "./pages/ChatPage";
 
 export default function App() {
-  const chat = useChat();
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AppLayout
-        sessions={chat.sessions}
-        activeSessionId={chat.sessions.find(s => s.messages === chat.messages)?.sessionId}
-        onNewChat={chat.newChat}
-        onSelectSession={chat.selectSession}
-      >
-        <Home chat={chat} />
-      </AppLayout>
-    </ThemeProvider>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/chat" element={<ChatPage />} />
+    </Routes>
   );
 }

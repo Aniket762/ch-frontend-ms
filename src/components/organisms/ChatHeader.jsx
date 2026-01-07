@@ -11,8 +11,7 @@ export default function ChatHeader({ onNewChat }) {
         mb: 2,
       }}
     >
-      <Typography variant="h6">Combine Health</Typography>
-      <PrimaryButton onClick={onNewChat}>New Discussion</PrimaryButton>
+      <Typography variant="h6" color="grey">Combine Health</Typography>
     </Box>
   );
 }

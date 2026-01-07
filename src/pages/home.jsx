@@ -1,15 +1,32 @@
-import ChatWindow from "../components/organisms/ChatWindow";
-import useChat from "../hooks/useChat";
+import { Box, Button } from "@mui/material";
+import InfoPage from "../components/organisms/InfoPage";
+import { useNavigate } from "react-router-dom";
 
-export default function home({ chat }) {
+export default function Home() {
+  const navigate = useNavigate();
+
   return (
-    <ChatWindow
-      messages={chat.messages}
-      input={chat.input}
-      loading={chat.loading}
-      onInputChange={e => chat.setInput(e.target.value)}
-      onSend={chat.send}
-    />
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column"
+      }}
+    >
+      <Box sx={{ flex: 1 }}>
+        <InfoPage />
+      </Box>
+
+      {/* CTA */}
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <Button
+          size="large"
+          variant="contained"
+          onClick={() => navigate("/chat")}
+        >
+          New Discussion
+        </Button>
+      </Box>
+    </Box>
   );
 }
-

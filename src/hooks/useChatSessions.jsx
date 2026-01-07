@@ -1,64 +1,37 @@
 import { useState } from "react";
-import { v4 as uuid } from "uuid";
-import { useSessionStorage } from "./useSessionStorage";
 
-const STORAGE_KEY = "chat_sessions";
-
-export default function useChatSessions() {
-  const [getStored, setStored] = useSessionStorage(STORAGE_KEY, {
-    sessions: [],
-    activeSessionId: null,
-  });
-
-  const [state, setState] = useState(getStored());
-
-  const activeSession = state.sessions.find(
-    s => s.sessionId === state.activeSessionId
-  );
-
-  const persist = newState => {
-    setState(newState);
-    setStored(newState);
-  };
-
-  const createNewSession = () => {
-    const newSession = {
-      sessionId: uuid(),
+export function useChatSessions() {
+  const [sessions, setSessions] = useState([
+    {
+      id: "default",
       title: "New conversation",
-      messages: [],
-    };
+      messages: []
+    }
+  ]);
 
-    persist({
-      sessions: [newSession, ...state.sessions],
-      activeSessionId: newSession.sessionId,
-    });
+  const [activeId, setActiveId] = useState("default");
+
+  const newSession = () => {
+    const id = Date.now().toString();
+    setSessions(prev => [
+      {
+        id,
+        title: "New conversation",
+        messages: []
+      },
+      ...prev
+    ]);
+    setActiveId(id);
   };
 
-  const updateMessages = messages => {
-    const updatedSessions = state.sessions.map(s =>
-      s.sessionId === state.activeSessionId
-        ? { ...s, messages }
-        : s
-    );
+  const setActive = id => setActiveId(id);
 
-    persist({
-      ...state,
-      sessions: updatedSessions,
-    });
-  };
-
-  const selectSession = sessionId => {
-    persist({
-      ...state,
-      activeSessionId: sessionId,
-    });
-  };
+  const activeSession = sessions.find(s => s.id === activeId);
 
   return {
-    sessions: state.sessions,
+    sessions,
     activeSession,
-    createNewSession,
-    updateMessages,
-    selectSession,
+    newSession,
+    setActive
   };
 }
