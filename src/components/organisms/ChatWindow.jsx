@@ -12,7 +12,19 @@ export default function ChatWindow({
   onNewChat,
 }) {
   return (
-    <Paper sx={{ p: 3, height: "90vh", display: "flex", flexDirection: "column" }}>
+    <Paper
+      sx={{
+        p: 3,
+        height: "100%",
+        width: "100%",
+        maxWidth: 820,
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: 0,
+        boxShadow: "none",
+        bgcolor: "transparent",
+      }}
+    >
       <ChatHeader onNewChat={onNewChat} />
       <MessageList messages={messages} loading={loading} />
       <ChatInput

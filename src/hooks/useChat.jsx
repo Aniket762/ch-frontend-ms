@@ -1,44 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { sendChat } from "../api/chatApi";
-import { v4 as uuid } from "uuid";
-import { useSessionStorage } from "./useSessionStorage";
+import useChatSessions from "./useChatSessions";
 
 export default function useChat() {
-  const [getMessages, setMessages] = useSessionStorage("chat", []);
-  const [messages, setLocalMessages] = useState(getMessages());
+  const {
+    sessions,
+    activeSession,
+    createNewSession,
+    updateMessages,
+    selectSession,
+  } = useChatSessions();
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(uuid());
+
+  // create first session on load
+  useEffect(() => {
+    if (!activeSession) {
+      createNewSession();
+    }
+  }, []);
 
   const send = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !activeSession) return;
 
-    const updated = [...messages, { role: "user", text: input }];
-    setLocalMessages(updated);
-    setMessages(updated);
+    const updatedMessages = [
+      ...activeSession.messages,
+      { role: "user", text: input },
+    ];
+
+    updateMessages(updatedMessages);
     setInput("");
     setLoading(true);
 
-    const res = await sendChat(input, sessionId);
+    const res = await sendChat(input, activeSession.sessionId);
 
-    const final = [...updated, { role: "bot", text: res.answer }];
-    setLocalMessages(final);
-    setMessages(final);
+    updateMessages([
+      ...updatedMessages,
+      { role: "bot", text: res.answer },
+    ]);
+
     setLoading(false);
   };
 
-  const reset = () => {
-    setLocalMessages([]);
-    setMessages([]);
-    setSessionId(uuid());
-  };
-
   return {
-    messages,
+    sessions,
+    messages: activeSession?.messages || [],
     input,
     loading,
     setInput,
     send,
-    reset,
+    newChat: createNewSession,
+    selectSession,
   };
 }

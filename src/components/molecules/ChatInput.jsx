@@ -5,7 +5,14 @@ import PrimaryButton from "../atoms/PrimaryButton";
 
 export default function ChatInput({ value, onChange, onSend, disabled }) {
   return (
-    <Box sx={{ display: "flex", gap: 1 }}>
+    <Box
+      sx={{
+        position: "sticky",
+        bottom: 0,
+        pt: 2,
+        bgcolor: "#F7F7F8",
+      }}
+    >
       <TextInput
         placeholder="Ask Combine Health..."
         value={value}
